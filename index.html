@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>index.html</title>
+	<meta charset="UTF-8">
+
+	<link rel="stylesheet" type="text/css" href="css/main.css"/>
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="package.js"></script>
+    
+<script>
+
+//ws://127.0.0.1:8887
+var webSocketUrl = "ws://"+config.serverip+":"+config.serverport+"/wstest/websocket";
+var socket;
+
+
+//JSON.parse(jsonstr); //可以将json字符串转换成json对象 
+//JSON.stringify(jsonobj); //可以将json对象转换成json对符串 
+
+
+var resultmessage={};
+resultmessage.appname = config.name;
+resultmessage.keyword = config.keyword;
+resultmessage.serial = "";
+
+function initto(){
+	if ('WebSocket' in window) {
+        socket = new WebSocket(webSocketUrl);
+    } else {
+        alert('当前浏览器 Not support websocket')
+    }
+
+	socket.onopen = function(event) { 
+		resultmessage.serial = "uec"+new Date().getTime();
+		
+		socket.send(JSON.stringify(resultmessage));
+
+		$(".msg-text").append('<li>【客户端消息】'+JSON.stringify(resultmessage)+'</li>');
+	};
+	// 监听消息
+	socket.onmessage = function(event) {
+		if(event.data!=null && event.data!=undefined){
+			$(".msg-text").append('<li>【服务端消息】'+event.data+'</li>');
+		}
+		//console.log(event.data);
+	}; 
+
+	// 监听Socket的关闭
+	socket.onclose = function(event) {
+		
+		//console.log('webSocket close');
+	};
+
+	socket.onerror = function(event) {
+		//连接失败, 清空队列
+		//console.log(event.data);
+	};
+}
+
+
+function getJson(v){
+	var ttt={};
+	ttt.appname = config.name;
+	ttt.keyword = config.keyword;
+	ttt.serial = new Date().getTime();
+
+	var getMsg =$("#inp-msg");
+	if(v == 1){
+		
+	}else if(v == 2){
+		ttt.messagetype = "event";
+		ttt.eventmessage = "WeatherInfo";
+	}else if(v == 3){
+		ttt.messagetype = "event";
+		ttt.eventmessage = "FlowInfo";
+	}else if(v == 4){
+	
+		ttt.messagetype = "forward";
+		ttt.forwardkeyword = "002";
+		ttt.forwardmessage = "测试一下";
+	}
+	getMsg.val(JSON.stringify(ttt));
+}
+</script>
+
+</head>
+<body onload="initto()">
+
+<script>
+
+
+
+</script>
+
+	<div id="chat_main">
+
+		<div class="show-msg">
+		<!-- 	<label class="msg-text">
+		</label> -->
+		<ul class="msg-text">
+			
+		</ul>
+		
+
+		</div>
+		<div class="clear"><input type="button" name="" value="清除" id="clearMsg"></div>
+		<div class="send-msg">
+			<input type="" name="" id="inp-msg" value="" name="msg" />
+		</div>
+
+
+		<button onclick="getJson(1)">测试连接</button>
+		<button onclick="getJson(2)">天气预报</button>
+		<button onclick="getJson(3)">人流量</button>
+		<button onclick="getJson(4)">消息转发</button>
+		
+		<button id="btn-send-msg">发送</button>
+	</div>
+
+	
+	<script type="text/javascript">
+		var getMsg =$("#inp-msg");
+		var btnSend = $("#btn-send-msg");
+		var showMsg = $(".show-msg");
+		btnSend.on("click",function(){
+			$(".msg-text").append('<li>【客户端消息】'+getMsg.val()+'</li>');
+			socket.send(getMsg.val());
+			getMsg.val("");
+		})
+				
+	</script>
+
+
+
+</body>
+</html>
